@@ -35,6 +35,7 @@ testRenderer htmlRenderer =
         \_ ->
             Unexpected "heading"
     , paragraph = \_ -> Unexpected "String"
+    , inlines = \_ -> Unexpected "String"
     , blockQuote = \_ -> Unexpected "String"
     , strong =
         \_ -> Unexpected "String"

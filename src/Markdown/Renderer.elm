@@ -41,6 +41,7 @@ You could render to any type you want. Here are some useful things you might ren
 type alias Renderer view =
     { heading : { level : Block.HeadingLevel, rawText : String, children : List view } -> view
     , paragraph : List view -> view
+    , inlines : List view -> view
     , blockQuote : List view -> view
     , html : Markdown.Html.Renderer (List view -> view)
     , text : String -> view
@@ -90,6 +91,7 @@ defaultHtmlRenderer =
                 Block.H6 ->
                     Html.h6 [] children
     , paragraph = Html.p []
+    , inlines = Html.p []
     , hardLineBreak = Html.br [] []
     , blockQuote = Html.blockquote []
     , strong =
@@ -283,6 +285,10 @@ defaultStringRenderer =
             )
                 ++ "\n\n"
     , paragraph =
+        \strs ->
+            String.concat strs
+                ++ "\n\n"
+    , inlines =
         \strs ->
             String.concat strs
                 ++ "\n\n"
@@ -509,6 +515,11 @@ renderHelperSingle renderer =
             Block.Paragraph content ->
                 renderStyled renderer content
                     |> Result.map renderer.paragraph
+                    |> Just
+
+            Block.Inlines content ->
+                renderStyled renderer content
+                    |> Result.map renderer.inlines
                     |> Just
 
             Block.HtmlBlock html ->

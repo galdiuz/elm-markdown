@@ -84,6 +84,7 @@ type Block
     | Heading HeadingLevel (List Inline)
     | Paragraph (List Inline)
     | Table (List { label : List Inline, alignment : Maybe Alignment }) (List (List (List Inline)))
+    | Inlines (List Inline)
       -- Leaf Blocks Without Inlines
     | CodeBlock { body : String, language : Maybe String }
     | ThematicBreak
@@ -303,6 +304,8 @@ extractInlineBlockText block =
         ThematicBreak ->
             ""
 
+        Inlines inlines ->
+            extractInlineText inlines
 
 
 --BlockQuote blocks ->
@@ -475,6 +478,10 @@ walkInlinesHelp function block =
 
         ThematicBreak ->
             block
+
+        Inlines inlines ->
+            List.map (inlineParserWalk function) inlines
+                |> Paragraph
 
 
 inlineParserWalk : (Inline -> Inline) -> Inline -> Inline
@@ -681,6 +688,11 @@ inlineParserValidateWalkBlock function block =
         CodeBlock _ ->
             Ok block
 
+        Inlines inlines ->
+            inlines
+                |> traverse (inlineParserValidateWalk function)
+                |> Result.map Paragraph
+
 
 {-| Recursively apply a function to transform each Block.
 
@@ -766,6 +778,9 @@ walk function block =
             function block
 
         ThematicBreak ->
+            function block
+
+        Inlines _ ->
             function block
 
 
@@ -944,6 +959,9 @@ foldl function acc list =
                 ThematicBreak ->
                     foldl function (function block acc) remainingBlocks
 
+                Inlines _ ->
+                    foldl function (function block acc) remainingBlocks
+
 
 {-| Fold over all inlines within a list of blocks to yield a value.
 
@@ -1105,5 +1123,8 @@ inlineFoldl ifunction top_acc list =
 
                     ThematicBreak ->
                         acc
+
+                    Inlines inlines ->
+                        List.foldl function acc inlines
     in
     foldl bfn top_acc list
