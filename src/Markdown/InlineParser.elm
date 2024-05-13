@@ -19,7 +19,11 @@ parse refs rawText_ =
     let
         rawText : String
         rawText =
-            String.trim rawText_
+            if String.trim rawText_ == "" then
+                ""
+
+            else
+                rawText_
 
         tokens : List Token
         tokens =
